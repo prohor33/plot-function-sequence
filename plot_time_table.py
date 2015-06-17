@@ -1,9 +1,6 @@
 import matplotlib.pyplot as plt
-import matplotlib.ticker
 import numpy
 from numpy import *
-import os
-import shutil
 from enum import Enum
 
 class ItemType(Enum):
@@ -25,6 +22,8 @@ def get_segment_in_arr(x, arr):
         i += 1
     return i - 1
 
+# tests
+
 ##v_in = [0, 1, 2, 3]
 ##v_out = [1, 1, 2, 2.5]
 ##v_def = [1, 3.1, 1, 1]
@@ -44,11 +43,11 @@ def get_segment_in_arr(x, arr):
 ##v_type = [ItemType.TILogistic, ItemType.TILogistic]
 
 #v_in = [1, 2, 3, 4, 5, 6]
-v_in = [1, 21, 30, 34, 35, 41]
-#v_in = [100, 200, 300, 400, 500, 600]
+##v_in = [1, 21, 30, 34, 35, 41]
+v_in = [100, 200, 300, 400, 500, 600]
 v_out = [1, 2, 1, 1.5, 0.5, 1, 0.2]
-v_def = [1, 1, 1, 1, 1, 1]
-v_type = [ItemType.TIIncrease, ItemType.TILogistic, ItemType.TILogistic, ItemType.TIDecrease, ItemType.TIIncrease, ItemType.TIConstant]
+v_def = [1.1, 2, 1, 0.97, 1, 1]
+v_type = [ItemType.TIIncrease, ItemType.TILogistic, ItemType.TILogistic, ItemType.TIDecrease, ItemType.TILinear, ItemType.TIConstant]
 
 def calc_point(x):
     i = get_segment_in_arr(x, v_in)
@@ -139,7 +138,8 @@ v_x = []
 v_y = []
 indent = v_in[1] - v_in[0]
 #indent = 0
-x = v_in[0] - indent
+#x = v_in[0] - indent
+x = v_in[0]
 delta_graph = (v_in[1] - v_in[0]) / 1000
 while x <= v_in[-1] + indent:
     v_x.append(x)
@@ -152,6 +152,6 @@ ax = plt.gca()
 plt.grid()
 
 im = plt.plot(v_x, v_y, marker='.', color='b')
-plt.show()
-#plt.savefig('time_table.png', dpi=100)
+#plt.show()
+plt.savefig('time_table.png', dpi=100)
 plt.close()
