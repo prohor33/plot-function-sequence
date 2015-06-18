@@ -43,20 +43,28 @@ def get_segment_in_arr(x, arr):
 ##v_type = [ItemType.TILogistic, ItemType.TILogistic]
 
 #v_in = [1, 2, 3, 4, 5, 6]
-##v_in = [1, 21, 30, 34, 35, 41]
+####v_in = [1, 21, 30, 34, 35, 41]
+##v_in = [100, 200, 300, 400, 500, 600]
+##v_out = [1, 2, 1, 1.5, 0.5, 1]
+##v_def = [1.1, 2, 1, 0.97, 1, 1]
+##v_type = [ItemType.TIIncrease, ItemType.TILogistic, ItemType.TILogistic, ItemType.TIDecrease, ItemType.TILinear, ItemType.TIConstant]
+
 v_in = [100, 200, 300, 400, 500, 600]
-v_out = [1, 2, 1, 1.5, 0.5, 1, 0.2]
+v_out = [1, 2, 1, 1.5, 0.5, 1]
 v_def = [1.1, 2, 1, 0.97, 1, 1]
-v_type = [ItemType.TIIncrease, ItemType.TILogistic, ItemType.TILogistic, ItemType.TIDecrease, ItemType.TILinear, ItemType.TIConstant]
+v_type = [ItemType.TIIncrease, ItemType.TILogistic, ItemType.TIAuto, ItemType.TIDecrease, ItemType.TILinear, ItemType.TIConstant]
 
 def calc_point(x):
     i = get_segment_in_arr(x, v_in)
     if i < 0:
         return -1.0
     last_point = i + 1 >= len(v_in)
+    next_auto = False if last_point else v_type[i + 1] == ItemType.TIAuto
+    no_next_point = last_point or next_auto
+    
     #print(i)
     type = v_type[i]
-    if last_point:
+    if no_next_point:
         type = ItemType.TIConstant
     if type == ItemType.TIAuto:
         return -1.0
@@ -96,7 +104,6 @@ def calc_point(x):
         # compute x_shift
         dy = y1 - y0
         dx = math.pow(k, par_sign * x1) - math.pow(k, par_sign * x0)
-        dx = k ** (par_sign * x1) - k ** (par_sign * x0)
         x_shift = 0.
         if dx != 0:
             x_shift = -par_sign * math.log(dy / dx, k)
@@ -152,6 +159,6 @@ ax = plt.gca()
 plt.grid()
 
 im = plt.plot(v_x, v_y, marker='.', color='b')
-#plt.show()
-plt.savefig('time_table.png', dpi=100)
+plt.show()
+#plt.savefig('time_table.png', dpi=100)
 plt.close()
