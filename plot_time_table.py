@@ -7,9 +7,8 @@ class ItemType(Enum):
     TIAuto = 0
     TILinear = 1
     TIConstant = 2
-    TIIncrease = 3
-    TIDecrease = 4
     TILogistic = 5
+    TIExponential = 6
 
 
 def get_segment_in_arr(x, arr):
@@ -49,10 +48,15 @@ def get_segment_in_arr(x, arr):
 ##v_def = [1.1, 2, 1, 0.97, 1, 1]
 ##v_type = [ItemType.TIIncrease, ItemType.TILogistic, ItemType.TILogistic, ItemType.TIDecrease, ItemType.TILinear, ItemType.TIConstant]
 
-v_in = [100, 200, 300, 400, 500, 600]
-v_out = [1, 2, 1, 1.5, 0.5, 1]
-v_def = [1.1, 2, 1, 0.97, 1, 1]
-v_type = [ItemType.TIIncrease, ItemType.TILogistic, ItemType.TIAuto, ItemType.TIDecrease, ItemType.TILinear, ItemType.TIConstant]
+v_in = [0, 1e-4, 2e-4, 4e-4]
+v_out = [1e-6, 2e-6, 4e-6, 2e-6]
+v_def = [1.0, 0.1, 1.0, 1.0]
+v_type = [ItemType.TIExponential, ItemType.TIExponential, ItemType.TIExponential, ItemType.TILinear]
+
+##v_in = [0, 1e-4]
+##v_out = [2e-6, 1e-6]
+##v_def = [1.0, 1.0]
+##v_type = [ItemType.TIExponential, ItemType.TIExponential]
 
 def calc_point(x):
     i = get_segment_in_arr(x, v_in)
@@ -75,8 +79,7 @@ def calc_point(x):
         return x_local * (v_out[i + 1] - v_out[i]) + v_out[i]
     elif type == ItemType.TIConstant:
         return v_out[i]
-    elif type == ItemType.TIIncrease or type == ItemType.TIDecrease:
-        par_sign = 1 if type == ItemType.TIIncrease else -1
+    elif type == ItemType.TIExponential:
         k = v_def[i]
         x0 = v_in[i]
         y0 = v_out[i]
@@ -84,35 +87,48 @@ def calc_point(x):
         y1 = v_out[i + 1]
         k0 = 1.
         b = 0.
+        par_sign = 1 if y1 > y0 else -1
 
-        # compute k0
-        #x_targ = (v_in[i + 1] - v_in[i]) / 2.0
-        x_targ = par_sign * (-0.8) * (v_in[i + 1] - v_in[i])
-        y_targ = math.fabs(v_out[i + 1] - v_out[i]) / 100.0
-##        if y_targ <= 0:
-##            print("can't use " + ("increase" if type == ItemType.TIIncrease else "decrease"))
-##            return -1.
-##        print("y_targ = ", y_targ)
-##        print("x_targ = ", x_targ)
+        dx = x1 - x0;
+        dy = y1 - y0;
+
+        def_dx = 1.0
+        def_dy = 1.0
+##        print("par_sign = ", par_sign)
+        x_targ = par_sign * (-0.8) * def_dx
+        y_targ = def_dy / 100.0
+
         k0 = y_targ ** (par_sign / x_targ)
-
-        # set k
         k *= k0
-##        print ("k = ", k)
-##        print ("x1 = ", x1)
+        #print("k = ", k)
+
+        coef_x = abs(dx / def_dx)
+        coef_y = abs(dy / def_dy)
+        print("coef_x = ", coef_x)
+        print("coef_y = ", coef_y)
 
         # compute x_shift
-        dy = y1 - y0
-        dx = math.pow(k, par_sign * x1) - math.pow(k, par_sign * x0)
-        x_shift = 0.
-        if dx != 0:
-            x_shift = -par_sign * math.log(dy / dx, k)
+        pow0 = k ** (par_sign * (-def_dx))
+        d_pow = par_sign * (1. - pow0)
+        print("d_pow = ", d_pow)
+        print("def_dy = ", def_dy)
+        print("def_dy / d_pow = ", def_dy / d_pow)
+        x_shift = -par_sign * math.log(def_dy / d_pow) / math.log(k) + def_dx
+        print("k = ", k)
+        print("x_shift = ", x_shift)
 
         def f(x):
-            return k ** (par_sign * (x - x_shift)) + b
+            x -= x0
+            x /= coef_x
+            ret = k ** (par_sign * (x - x_shift))
+            return ret * coef_y + b
+##        print("y0 / coef_y = ", y0 / coef_y)
+##        print("f(x0) = ", f(x0))
+##        print("f(x0) / coef_y = ", f(x0) / coef_y)
         b = y0 - f(x0)
+##        print("b = ", b)
         return f(x)
-    elif ItemType.TILogistic:
+    elif type == ItemType.TILogistic:
         # for logistic we are computing k0, x_shift, L, b
         # for last point: L = 1, k0 = 1
         k = v_def[i]
@@ -147,7 +163,7 @@ indent = v_in[1] - v_in[0]
 #indent = 0
 #x = v_in[0] - indent
 x = v_in[0]
-delta_graph = (v_in[1] - v_in[0]) / 1000
+delta_graph = (v_in[1] - v_in[0]) / 10
 while x <= v_in[-1] + indent:
     v_x.append(x)
     v_y.append(calc_point(x))
